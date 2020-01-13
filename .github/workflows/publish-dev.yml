@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - dev
+      - feature/CAD-36
 
 jobs:
   build:
@@ -23,13 +24,10 @@ jobs:
         uses: CultureHQ/actions-yarn@master
         with:
           args: build
-      - name: Copy via ssh
-        uses: garygrossgarten/github-action-scp@v0.5.3
-        if: github.ref == 'refs/heads/dev'
+      - name: Deploy
+        uses: CultureHQ/actions-yarn@master
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         with:
-          local: dist/
-          remote: /var/www/dev/
-          host: dev.crisis.app
-          username: ${{ secrets.FTP_USERNAME }}
-          privateKey: ${{ secrets.DEPLOY_PRIVATE_KEY }}
-          passphrase: ${{ secrets. DEPLOY_KEY_PASSWORD }}
+          args: s3-deploy './dist/**' --cwd './dist/' --region ap-southeast-2 --bucket mk13-test-bucket
